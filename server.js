@@ -7,7 +7,6 @@ const twilio = require("twilio");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Load env variables
 const {
   TWILIO_ACCOUNT_SID,
   TWILIO_API_KEY,
@@ -17,7 +16,6 @@ const {
   FRONTEND_URL,
 } = process.env;
 
-// ---------- Validate environment variables ----------
 function requireEnv(name, value) {
   if (!value) {
     console.error(Missing required environment variable: ${name});
@@ -31,7 +29,6 @@ requireEnv("TWILIO_API_SECRET", TWILIO_API_SECRET);
 requireEnv("TWIML_APP_SID", TWIML_APP_SID);
 requireEnv("TWILIO_CALLER_ID", TWILIO_CALLER_ID);
 
-// ---------- Middleware ----------
 app.use(
   cors({
     origin: FRONTEND_URL === "*" ? true : FRONTEND_URL,
@@ -42,7 +39,6 @@ app.use(
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// ---------- Health Check ----------
 app.get("/", (req, res) => {
   res.json({
     ok: true,
@@ -50,7 +46,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// ---------- Generate Token ----------
 app.get("/generateToken", (req, res) => {
   try {
     const identity = req.query.identity || "voxdigits_user";
@@ -86,11 +81,9 @@ app.get("/generateToken", (req, res) => {
   }
 });
 
-// ---------- Outbound Call ----------
 app.post("/voice", (req, res) => {
   try {
     const to = req.body.To || req.body.to;
-
     const twiml = new twilio.twiml.VoiceResponse();
 
     if (!to) {
@@ -108,40 +101,31 @@ app.post("/voice", (req, res) => {
     res.type("text/xml").send(twiml.toString());
   } catch (error) {
     console.error("Voice error:", error);
-
     const twiml = new twilio.twiml.VoiceResponse();
     twiml.say("Application error");
-
     res.type("text/xml").send(twiml.toString());
   }
 });
 
-// ---------- Inbound Call ----------
 app.post("/incoming", (req, res) => {
   try {
     const twiml = new twilio.twiml.VoiceResponse();
-
     const dial = twiml.dial();
     dial.client("voxdigits_user");
-
     res.type("text/xml").send(twiml.toString());
   } catch (error) {
     console.error("Incoming error:", error);
-
     const twiml = new twilio.twiml.VoiceResponse();
     twiml.say("Cannot connect call");
-
     res.type("text/xml").send(twiml.toString());
   }
 });
 
-// ---------- Call Status ----------
 app.post("/status", (req, res) => {
   console.log("Call status:", req.body);
   res.sendStatus(200);
 });
 
-// ---------- 404 ----------
 app.use((req, res) => {
   res.status(404).json({
     ok: false,
@@ -149,7 +133,6 @@ app.use((req, res) => {
   });
 });
 
-// ---------- Start Server ----------
 app.listen(PORT, "0.0.0.0", () => {
   console.log(VoxDigits backend running on port ${PORT});
-})
+});
