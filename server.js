@@ -15,10 +15,6 @@ app.get("/health", (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/api/test", (req, res) => {
-  res.json({ ok: true, message: "test route working" });
-});
-
 app.get("/api/twilio/token", (req, res) => {
   try {
     const {
@@ -28,50 +24,25 @@ app.get("/api/twilio/token", (req, res) => {
       TWILIO_TWIML_APP_SID,
     } = process.env;
 
-    if (!TWILIO_ACCOUNT_SID) {
-      return res.status(500).json({ error: "Missing TWILIO_ACCOUNT_SID" });
-    }
-
-    if (!TWILIO_API_KEY) {
-      return res.status(500).json({ error: "Missing TWILIO_API_KEY" });
-    }
-
-    if (!TWILIO_API_SECRET) {
-      return res.status(500).json({ error: "Missing TWILIO_API_SECRET" });
-    }
-
-    if (!TWILIO_TWIML_APP_SID) {
-      return res.status(500).json({ error: "Missing TWILIO_TWIML_APP_SID" });
-    }
-
-    const AccessToken = twilio.jwt.AccessToken;
-    const VoiceGrant = AccessToken.VoiceGrant;
-
-    const identity = req.query.identity || "user";
-
-    const token = new AccessToken(
-      TWILIO_ACCOUNT_SID,
-      TWILIO_API_KEY,
-      TWILIO_API_SECRET,
-      { identity }
-    );
-
-    const voiceGrant = new VoiceGrant({
-      outgoingApplicationSid: TWILIO_TWIML_APP_SID,
-      incomingAllow: true,
-    });
-
-    token.addGrant(voiceGrant);
-
-    return res.json({
+    res.json({
       ok: true,
-      token: token.toJwt(),
-      identity,
+      seen: {
+        TWILIO_ACCOUNT_SID: !!TWILIO_ACCOUNT_SID,
+        TWILIO_API_KEY: !!TWILIO_API_KEY,
+        TWILIO_API_SECRET: !!TWILIO_API_SECRET,
+        TWILIO_TWIML_APP_SID: !!TWILIO_TWIML_APP_SID,
+      },
+      values: {
+        accountSidPrefix: TWILIO_ACCOUNT_SID ? TWILIO_ACCOUNT_SID.slice(0, 2) : null,
+        apiKeyPrefix: TWILIO_API_KEY ? TWILIO_API_KEY.slice(0, 2) : null,
+        twimlAppPrefix: TWILIO_TWIML_APP_SID ? TWILIO_TWIML_APP_SID.slice(0, 2) : null,
+      }
     });
   } catch (err) {
-    console.error("TWILIO TOKEN ERROR:", err);
-    return res.status(500).json({
-      error: err.message || "Unknown Twilio token error",
+    res.status(500).json({
+      ok: false,
+      error: err.message,
+      stack: err.stack
     });
   }
 });
