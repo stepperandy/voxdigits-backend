@@ -11,10 +11,9 @@ app.get("/", (req, res) => {
   res.send("VoxDigits backend is live");
 });
 
-app.get("/health", (req, res) => {
-  res.json({ ok: true });
+app.get("/", (req, res) => {
+  res.send("VOXDIGITS NEW SERVER CHECK");
 });
-
 app.get("/api/twilio/token", (req, res) => {
   try {
     const {
